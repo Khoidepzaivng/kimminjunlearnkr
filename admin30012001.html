@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin 30012001 - Hàn Ngữ Min Jun</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Be Vietnam Pro',sans-serif}</style>
+</head>
+<body class="bg-gray-50">
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const LEVELS=[
+  {id:"so_cap_1",name:"Sơ cấp 1",price:499000},{id:"so_cap_2",name:"Sơ cấp 2",price:499000},
+  {id:"trung_cap_3",name:"Trung cấp 3",price:499000},{id:"trung_cap_4",name:"Trung cấp 4",price:499000},
+  {id:"cao_cap_5",name:"Cao cấp 5",price:499000},{id:"cao_cap_6",name:"Cao cấp 6",price:499000},
+  {id:"topik_1_4",name:"TOPIK 1-4",price:499000},{id:"topik_5_6",name:"TOPIK 5-6",price:599000},
+];
+function App(){
+  const [isAdmin,setIsAdmin]=React.useState(()=>JSON.parse(localStorage.getItem('minjun_admin_auth')||'false'));
+  const [keyInput,setKeyInput]=React.useState("");
+  const [view,setView]=React.useState('dashboard');
+  const [selectedLevel,setSelectedLevel]=React.useState('so_cap_1');
+  const [selectedBai,setSelectedBai]=React.useState(1);
+  const [videos,setVideos]=React.useState(()=>JSON.parse(localStorage.getItem('minjun_admin_videos')||'[]'));
+  const [orders,setOrders]=React.useState(()=>JSON.parse(localStorage.getItem('minjun_pending_orders')||'[]'));
+  const [users,setUsers]=React.useState(()=>JSON.parse(localStorage.getItem('minjun_users')||'[{"name":"Đăng Khôi","email":"khoi@minjun.edu","provider":"google","enrolled":["so_cap_1"],"xp":1250,"streak":7}]'));
+  const [newVideo,setNewVideo]=React.useState({youtube:"",title:"",section:"video",description:""});
+  const handleLogin=(e)=>{e.preventDefault(); if(keyInput==="30012001"||keyInput==="MINJUN2026"){localStorage.setItem('minjun_admin_auth','true'); setIsAdmin(true);}else alert("Sai Key! 30012001 hoặc MINJUN2026");};
+  const addVideo=()=>{if(!newVideo.youtube) return alert("Nhập YouTube"); const v={id:Date.now(),level:selectedLevel,bai:selectedBai,youtube:newVideo.youtube.includes('youtube')?newVideo.youtube.split('v=')[1]?.split('&')[0]||newVideo.youtube:newVideo.youtube,title:newVideo.title||`Video ${selectedLevel} Bài ${selectedBai}`,section:newVideo.section,description:newVideo.description,status:"pending",created:new Date().toLocaleString()}; const nv=[...videos,v]; setVideos(nv); localStorage.setItem('minjun_admin_videos',JSON.stringify(nv)); setNewVideo({youtube:"",title:"",section:"video",description:""}); alert("Đã thêm video");};
+  const approveVideo=(id)=>{const nv=videos.map(v=>v.id===id?{...v,status:"approved"}:v); setVideos(nv); localStorage.setItem('minjun_admin_videos',JSON.stringify(nv));};
+  const approveOrder=(idx)=>{const order=orders[idx]; const no=[...orders]; no[idx]={...order,status:"approved"}; setOrders(no); localStorage.setItem('minjun_pending_orders',JSON.stringify(no)); let enrollments=JSON.parse(localStorage.getItem('minjun_enrollments')||'{}'); const userKey=order.email||order.name; if(!enrollments[userKey]) enrollments[userKey]=[]; if(!enrollments[userKey].includes(order.course)) enrollments[userKey].push(order.course); localStorage.setItem('minjun_enrollments',JSON.stringify(enrollments)); alert(`Đã cấp ${order.course} cho ${order.name}`);};
+  if(!isAdmin){return (<div className="min-h-screen bg-gradient-to-br from-slate-900 to-indigo-900 flex items-center justify-center p-4"><form onSubmit={handleLogin} className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl"><div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-4">A</div><h1 className="text-2xl font-bold">Admin 30012001</h1><p className="text-sm text-gray-500 mb-6">Secret Key required</p><input type="password" value={keyInput} onChange={e=>setKeyInput(e.target.value)} placeholder="30012001" className="w-full border rounded-xl px-4 py-3 mb-4" required/><button type="submit" className="w-full bg-indigo-600 text-white rounded-xl py-3 font-bold">Đăng nhập</button></form></div>);}
+  return (
+    <div className="min-h-screen flex"><aside className="w-64 bg-slate-900 text-white p-4 flex flex-col"><div className="flex items-center gap-3 mb-8"><div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center font-bold">한</div><div><div className="font-bold">Admin 30012001</div><div className="text-xs text-slate-400">Hàn Ngữ Min Jun</div></div></div><nav className="space-y-1 flex-1">{[{id:'dashboard',label:'📊 Dashboard'},{id:'courses',label:'📚 Khóa học'},{id:'lessons',label:'📖 Bài học 90 bài'},{id:'videos',label:'🎥 Duyệt Video'},{id:'orders',label:'💬 Đơn Zalo'},{id:'grant',label:'🔑 Cấp quyền'},{id:'users',label:'👥 Users'},{id:'settings',label:'⚙️ Cài đặt'}].map(item=>(<button key={item.id} onClick={()=>setView(item.id)} className={`w-full text-left px-3 py-2 rounded-xl text-sm ${view===item.id?'bg-indigo-600':'hover:bg-slate-800'}`}>{item.label}</button>))}</nav><button onClick={()=>{localStorage.removeItem('minjun_admin_auth'); setIsAdmin(false);}} className="text-xs text-slate-400 mt-4">Đăng xuất</button></aside><main className="flex-1 p-6 overflow-auto">
+      {view==='dashboard'&&<div><h2 className="text-2xl font-bold mb-6">Dashboard 90 Bài</h2><div className="grid md:grid-cols-4 gap-4 mb-6"><div className="bg-white border rounded-2xl p-4"><div className="text-xs text-gray-500">Học viên</div><div className="text-2xl font-bold">{users.length}</div></div><div className="bg-white border rounded-2xl p-4"><div className="text-xs text-gray-500">Doanh thu</div><div className="text-2xl font-bold">{(orders.filter(o=>o.status==='approved').length*499000).toLocaleString()}đ</div></div><div className="bg-white border rounded-2xl p-4"><div className="text-xs text-gray-500">Chờ duyệt</div><div className="text-2xl font-bold">{orders.filter(o=>o.status!=='approved').length}</div></div><div className="bg-white border rounded-2xl p-4"><div className="text-xs text-gray-500">Video chờ</div><div className="text-2xl font-bold">{videos.filter(v=>v.status==='pending').length}</div></div></div></div>}
+      {view==='lessons'&&<div><h2 className="text-2xl font-bold mb-4">Thêm video vào từng phần</h2><div className="flex gap-3 mb-4"><select value={selectedLevel} onChange={e=>setSelectedLevel(e.target.value)} className="border rounded-xl px-3 py-2">{LEVELS.slice(0,6).map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select><select value={selectedBai} onChange={e=>setSelectedBai(Number(e.target.value))} className="border rounded-xl px-3 py-2">{Array.from({length:15},(_,i)=><option key={i+1} value={i+1}>Bài {i+1}</option>)}</select></div><div className="bg-white border rounded-2xl p-6 mb-6"><h3 className="font-bold mb-3">Thêm video Bài {selectedBai} - {selectedLevel}</h3><div className="grid md:grid-cols-2 gap-4"><div><label className="text-xs font-bold">YouTube ID/Link</label><input value={newVideo.youtube} onChange={e=>setNewVideo({...newVideo,youtube:e.target.value})} placeholder="dQw4w9WgXcQ" className="w-full border rounded-xl px-3 py-2 mt-1"/></div><div><label className="text-xs font-bold">Tiêu đề</label><input value={newVideo.title} onChange={e=>setNewVideo({...newVideo,title:e.target.value})} placeholder="Bài 1 - Từ vựng" className="w-full border rounded-xl px-3 py-2 mt-1"/><label className="text-xs font-bold mt-2 block">Phần</label><select value={newVideo.section} onChange={e=>setNewVideo({...newVideo,section:e.target.value})} className="w-full border rounded-xl px-3 py-2 mt-1"><option value="vocab">Từ vựng</option><option value="grammar">Ngữ pháp</option><option value="giao_tiep">Giao tiếp</option><option value="video">Video chính</option></select><button onClick={addVideo} className="mt-3 w-full bg-indigo-600 text-white rounded-xl py-2 font-bold">+ Thêm video</button></div></div></div><div className="bg-white border rounded-2xl p-6"><h3 className="font-bold mb-3">Videos {selectedLevel} Bài {selectedBai} ({videos.filter(v=>v.level===selectedLevel&&v.bai===selectedBai).length})</h3>{videos.filter(v=>v.level===selectedLevel&&v.bai===selectedBai).map(v=>(<div key={v.id} className="flex items-center gap-3 border rounded-xl p-3 mb-2"><div className="w-16 h-10 bg-gray-100 rounded flex items-center justify-center text-xs">▶️</div><div className="flex-1"><div className="font-bold text-sm">{v.title}</div><div className="text-xs text-gray-500">{v.youtube} • {v.section} • {v.status}</div></div><span className={`px-2 py-1 rounded-full text-xs ${v.status==='approved'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}`}>{v.status}</span>{v.status==='pending'&&<button onClick={()=>approveVideo(v.id)} className="px-3 py-1 bg-green-600 text-white rounded-full text-xs">Duyệt</button>}</div>))}</div></div>}
+      {view==='orders'&&<div><h2 className="text-2xl font-bold mb-4">Đơn Zalo ({orders.length})</h2><div className="bg-white border rounded-2xl overflow-hidden"><table className="w-full text-sm"><thead className="bg-gray-50"><tr><th className="text-left p-3">Tên</th><th className="text-left p-3">Khóa</th><th className="text-left p-3">Trạng thái</th><th className="text-left p-3">Hành động</th></tr></thead><tbody>{orders.map((o,i)=>(<tr key={i} className="border-t"><td className="p-3">{o.name}</td><td className="p-3">{o.course}</td><td className="p-3">{o.status||'pending'}</td><td className="p-3"><button onClick={()=>approveOrder(i)} className="bg-green-600 text-white px-3 py-1 rounded-full text-xs">Duyệt - Cấp quyền</button></td></tr>))}</tbody></table></div></div>}
+    </main></div>
+  );
+}
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
